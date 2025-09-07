@@ -1,0 +1,6 @@
+@SensorMqttDemo_HostAddress = http://localhost:5170
+
+GET {{SensorMqttDemo_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

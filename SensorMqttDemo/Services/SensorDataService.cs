@@ -1,9 +1,8 @@
 ﻿using SensorMqttDemo.Models;
-using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
+using SensorMqttDemo.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Xml.Linq;
 
 namespace SensorMqttDemo.Services
@@ -12,31 +11,36 @@ namespace SensorMqttDemo.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<SensorDataService> _logger;
+        private readonly IHubContext<SensorHub> _hubContext;
         private readonly string[] _rssUrls =
         {
             "https://feeds.enviroflash.info/rss/realtime/382.xml" // Antelope Valley
         };
 
-        public SensorDataService(HttpClient httpClient, ILogger<SensorDataService> logger)
+        public SensorDataService(HttpClient httpClient, ILogger<SensorDataService> logger, IHubContext<SensorHub> hubContext)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested) {
+            while (!stoppingToken.IsCancellationRequested)
+            {
                 try
                 {
                     await FetchAndProcessData();
-                    await Task.Delay(1000, stoppingToken); // Every 1 second
+                    await Task.Delay(5000, stoppingToken); // Every 5 seconds for dashboard
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError(ex, "Error fetching sensor data");
-                    await Task.Delay(5000, stoppingToken); // Wait 5 seconds on error
+                    await Task.Delay(5000, stoppingToken);
                 }
             }
         }
+
         private async Task FetchAndProcessData()
         {
             foreach (var url in _rssUrls)
@@ -49,6 +53,14 @@ namespace SensorMqttDemo.Services
                     foreach (var reading in readings)
                     {
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {reading.SensorType} = {reading.AQI} AQI ({reading.Quality})");
+
+                        // Send to SignalR clients
+                        await _hubContext.Clients.All.SendAsync("SensorDataUpdate",
+                            reading.SensorType,
+                            reading.AQI,
+                            reading.Quality,
+                            reading.Location,
+                            reading.Agency);
                     }
                 }
                 catch (Exception ex)
@@ -62,55 +74,60 @@ namespace SensorMqttDemo.Services
         {
             var readings = new List<SensorReading>();
 
-            var doc = XDocument.Parse(xmlContent);
-            var items = doc.Descendants("item");
-
-            foreach (var item in items)
+            try
             {
-                var description = item.Element("description")?.Value ?? "";
-                var location = ExtractLocation(description);
-                var pubDate = DateTime.Parse(item.Element("pubDate")?.Value ?? DateTime.Now.ToString());
+                var doc = XDocument.Parse(xmlContent);
+                var items = doc.Descendants("item");
 
-                var aqiMatches = Regex.Matches(description, @"(\w+)\s*-\s*(\d+)\s*AQI\s*-\s*([^<\n]+)");
-
-                foreach (Match match in aqiMatches)
+                foreach (var item in items)
                 {
-                    var quality = match.Groups[1].Value;
-                    var aqi = int.Parse(match.Groups[2].Value);
-                    var pollutant = match.Groups[3].Value.Trim();
+                    var description = item.Element("description")?.Value ?? "";
+                    var title = item.Element("title")?.Value ?? "";
+                    var pubDate = DateTime.Parse(item.Element("pubDate")?.Value ?? DateTime.Now.ToString());
 
-                    var sensorType = pollutant switch
-                    {
-                        var p when p.Contains("2.5 microns") => "PM2.5",
-                        var p when p.Contains("10 microns") => "PM10",
-                        var p when p.Contains("Ozone") => "Ozone",
-                        _ => pollutant
-                    };
+                    // Extract location from description
+                    var locationMatch = Regex.Match(description, @"([^,]+,\s*[A-Z]{2})");
+                    var location = locationMatch.Success ? locationMatch.Groups[1].Value : "Unknown";
 
-                    readings.Add(new SensorReading
+                    // Extract AQI from title (format: "PM2.5 AQI of 25 for Antelope Vly, CA")
+                    var aqiMatch = Regex.Match(title, @"(\w+(?:\.\d+)?)\s+AQI\s+of\s+(\d+)");
+                    if (aqiMatch.Success)
                     {
-                        Location = location,
-                        SensorType = sensorType,
-                        AQI = aqi,
-                        Quality = quality,
-                        Timestamp = pubDate,
-                        Agency = ExtractAgency(description)
-                    });
+                        var sensorType = aqiMatch.Groups[1].Value;
+                        var aqi = int.Parse(aqiMatch.Groups[2].Value);
+                        var quality = GetAQIQuality(aqi);
+
+                        readings.Add(new SensorReading
+                        {
+                            Location = location,
+                            SensorType = sensorType,
+                            AQI = aqi,
+                            Quality = quality,
+                            Timestamp = pubDate,
+                            Agency = "Antelope Valley AQMD"
+                        });
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error parsing RSS data");
+            }
+
             return readings;
         }
 
-        private string ExtractLocation(string description)
+        private string GetAQIQuality(int aqi)
         {
-            var match = Regex.Match(description, @"<b>Location:</b>\s*([^<]+)");
-            return match.Success ? match.Groups[1].Value.Trim() : "Unknown";
-        }
-
-        private string ExtractAgency(string description)
-        {
-            var match = Regex.Match(description, @"<b>Agency:</b>\s*([^<]+)");
-            return match.Success ? match.Groups[1].Value.Trim() : "Unknown";
+            return aqi switch
+            {
+                <= 50 => "Good",
+                <= 100 => "Moderate",
+                <= 150 => "Unhealthy for Sensitive Groups",
+                <= 200 => "Unhealthy",
+                <= 300 => "Very Unhealthy",
+                _ => "Hazardous"
+            };
         }
     }
 }

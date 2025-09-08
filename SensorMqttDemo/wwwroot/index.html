@@ -9,77 +9,100 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
-<body class="bg-gray-900 text-white">
-    <div class="container mx-auto p-6">
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <div class="container mx-auto p-4 max-w-7xl">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold text-center mb-2">AirNow Real-time Dashboard</h1>
-            <div class="text-center">
-                <span id="connectionStatus" class="px-3 py-1 rounded-full text-sm bg-red-600">Disconnected</span>
-                <span id="lastUpdate" class="text-gray-400 ml-4">--</span>
+        <div class="bg-white rounded-lg shadow-sm border mb-6 p-6">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-3">AirNow Industrial Dashboard</h1>
+            <div class="flex justify-center items-center space-x-4">
+                <span id="connectionStatus" class="px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800">Disconnected</span>
+                <span id="lastUpdate" class="text-gray-500 text-sm">--</span>
             </div>
         </div>
 
         <!-- Current Values Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="sensor-card">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="sensor-card bg-white">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-400 text-sm">PM2.5</p>
-                        <p id="pm25-value" class="text-3xl font-bold">--</p>
-                        <p id="pm25-quality" class="text-sm mt-1">--</p>
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">PM2.5</p>
+                        <p id="pm25-value" class="text-2xl font-bold text-gray-800">--</p>
+                        <p id="pm25-quality" class="text-xs mt-1 font-medium">--</p>
                     </div>
-                    <div id="pm25-dot" class="status-dot"></div>
+                    <div class="flex flex-col items-center">
+                        <div id="pm25-dot" class="status-dot mb-2"></div>
+                        <span class="text-xs text-gray-400">AQI</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="sensor-card">
+            <div class="sensor-card bg-white">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-400 text-sm">Ozone</p>
-                        <p id="ozone-value" class="text-3xl font-bold">--</p>
-                        <p id="ozone-quality" class="text-sm mt-1">--</p>
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">Ozone</p>
+                        <p id="ozone-value" class="text-2xl font-bold text-gray-800">--</p>
+                        <p id="ozone-quality" class="text-xs mt-1 font-medium">--</p>
                     </div>
-                    <div id="ozone-dot" class="status-dot"></div>
+                    <div class="flex flex-col items-center">
+                        <div id="ozone-dot" class="status-dot mb-2"></div>
+                        <span class="text-xs text-gray-400">AQI</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="sensor-card">
+            <div class="sensor-card bg-white">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-400 text-sm">PM10</p>
-                        <p id="pm10-value" class="text-3xl font-bold">--</p>
-                        <p id="pm10-quality" class="text-sm mt-1">--</p>
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">PM10</p>
+                        <p id="pm10-value" class="text-2xl font-bold text-gray-800">--</p>
+                        <p id="pm10-quality" class="text-xs mt-1 font-medium">--</p>
                     </div>
-                    <div id="pm10-dot" class="status-dot"></div>
+                    <div class="flex flex-col items-center">
+                        <div id="pm10-dot" class="status-dot mb-2"></div>
+                        <span class="text-xs text-gray-400">AQI</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
             <!-- Real-time Line Chart -->
-            <div class="chart-container">
-                <h3 class="text-xl font-semibold mb-4">Real-time AQI Trends</h3>
-                <canvas id="lineChart" width="400" height="200"></canvas>
+            <div class="chart-container bg-white">
+                <div class="chart-header">
+                    <h3 class="text-lg font-semibold text-gray-800">Real-time AQI Trends</h3>
+                    <span class="text-xs text-gray-500">Last 20 readings</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="lineChart"></canvas>
+                </div>
             </div>
 
             <!-- Current AQI Bar Chart -->
-            <div class="chart-container">
-                <h3 class="text-xl font-semibold mb-4">Current AQI Levels</h3>
-                <canvas id="barChart" width="400" height="200"></canvas>
+            <div class="chart-container bg-white">
+                <div class="chart-header">
+                    <h3 class="text-lg font-semibold text-gray-800">Current AQI Levels</h3>
+                    <span class="text-xs text-gray-500">Live readings</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="barChart"></canvas>
+                </div>
             </div>
         </div>
 
         <!-- Location Info -->
-        <div class="mt-8 info-card">
-            <h3 class="text-xl font-semibold mb-4">Monitoring Station</h3>
-            <p class="text-gray-300">
-                <span class="font-medium">Location:</span> <span id="location">Antelope Valley, CA</span>
-            </p>
-            <p class="text-gray-300 mt-2">
-                <span class="font-medium">Agency:</span> <span id="agency">Antelope Valley AQMD</span>
-            </p>
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Monitoring Station</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Location:</span>
+                    <span id="location" class="ml-2 text-gray-800">Antelope Valley, CA</span>
+                </div>
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Agency:</span>
+                    <span id="agency" class="ml-2 text-gray-800">Antelope Valley AQMD</span>
+                </div>
+            </div>
         </div>
     </div>
 

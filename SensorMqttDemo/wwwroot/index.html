@@ -78,14 +78,40 @@
                 </div>
             </div>
 
-            <!-- Current AQI Bar Chart -->
+            <!-- Current AQI Gauge Chart -->
             <div class="chart-container bg-white">
                 <div class="chart-header">
-                    <h3 class="text-lg font-semibold text-gray-800">Current AQI Levels</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Current AQI Gauge</h3>
                     <span class="text-xs text-gray-500">Live readings</span>
                 </div>
-                <div class="chart-wrapper">
-                    <canvas id="barChart"></canvas>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4">
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="pm25Gauge" width="120" height="120"></canvas>
+                            <div class="gauge-label">
+                                <span class="gauge-title">PM2.5</span>
+                                <span id="pm25-gauge-value" class="gauge-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="ozoneGauge" width="120" height="120"></canvas>
+                            <div class="gauge-label">
+                                <span class="gauge-title">Ozone</span>
+                                <span id="ozone-gauge-value" class="gauge-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="pm10Gauge" width="120" height="120"></canvas>
+                            <div class="gauge-label">
+                                <span class="gauge-title">PM10</span>
+                                <span id="pm10-gauge-value" class="gauge-value">--</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

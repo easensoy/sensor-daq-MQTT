@@ -84,41 +84,62 @@
                     <h3 class="text-lg font-semibold text-gray-800">Current AQI Levels</h3>
                     <span class="text-xs text-gray-500">Live readings</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 p-6">
                     <!-- PM2.5 Gauge -->
-                    <div class="gauge-card">
-                        <div class="gauge-circle" id="pm25-circle">
-                            <div class="gauge-inner">
-                                <span class="gauge-value" id="pm25-gauge-value">--</span>
-                                <span class="gauge-unit">AQI</span>
+                    <div class="aqi-gauge-card">
+                        <div class="aqi-label">AQI</div>
+                        <div class="aqi-gauge" data-sensor="pm25">
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle cx="70" cy="70" r="60" stroke="#e5e7eb" stroke-width="8" fill="none" />
+                                <circle cx="70" cy="70" r="60" stroke="#16a34a" stroke-width="8" fill="none"
+                                        stroke-dasharray="377" stroke-dashoffset="377"
+                                        class="progress-circle" id="pm25-progress" />
+                            </svg>
+                            <div class="aqi-center">
+                                <span class="aqi-value" id="pm25-aqi-value">--</span>
+                                <span class="aqi-unit">AQI</span>
                             </div>
                         </div>
-                        <div class="gauge-title">PM2.5</div>
-                        <div class="gauge-status" id="pm25-gauge-status">--</div>
+                        <div class="aqi-sensor-name">PM2.5</div>
+                        <div class="aqi-status" id="pm25-aqi-status">--</div>
                     </div>
 
                     <!-- Ozone Gauge -->
-                    <div class="gauge-card">
-                        <div class="gauge-circle" id="ozone-circle">
-                            <div class="gauge-inner">
-                                <span class="gauge-value" id="ozone-gauge-value">--</span>
-                                <span class="gauge-unit">AQI</span>
+                    <div class="aqi-gauge-card">
+                        <div class="aqi-label">AQI</div>
+                        <div class="aqi-gauge" data-sensor="ozone">
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle cx="70" cy="70" r="60" stroke="#e5e7eb" stroke-width="8" fill="none" />
+                                <circle cx="70" cy="70" r="60" stroke="#2563eb" stroke-width="8" fill="none"
+                                        stroke-dasharray="377" stroke-dashoffset="377"
+                                        class="progress-circle" id="ozone-progress" />
+                            </svg>
+                            <div class="aqi-center">
+                                <span class="aqi-value" id="ozone-aqi-value">--</span>
+                                <span class="aqi-unit">AQI</span>
                             </div>
                         </div>
-                        <div class="gauge-title">Ozone</div>
-                        <div class="gauge-status" id="ozone-gauge-status">--</div>
+                        <div class="aqi-sensor-name">Ozone</div>
+                        <div class="aqi-status" id="ozone-aqi-status">--</div>
                     </div>
 
                     <!-- PM10 Gauge -->
-                    <div class="gauge-card">
-                        <div class="gauge-circle" id="pm10-circle">
-                            <div class="gauge-inner">
-                                <span class="gauge-value" id="pm10-gauge-value">--</span>
-                                <span class="gauge-unit">AQI</span>
+                    <div class="aqi-gauge-card">
+                        <div class="aqi-label">AQI</div>
+                        <div class="aqi-gauge" data-sensor="pm10">
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle cx="70" cy="70" r="60" stroke="#e5e7eb" stroke-width="8" fill="none" />
+                                <circle cx="70" cy="70" r="60" stroke="#16a34a" stroke-width="8" fill="none"
+                                        stroke-dasharray="377" stroke-dashoffset="377"
+                                        class="progress-circle" id="pm10-progress" />
+                            </svg>
+                            <div class="aqi-center">
+                                <span class="aqi-value" id="pm10-aqi-value">--</span>
+                                <span class="aqi-unit">AQI</span>
                             </div>
                         </div>
-                        <div class="gauge-title">PM10</div>
-                        <div class="gauge-status" id="pm10-gauge-status">--</div>
+                        <div class="aqi-sensor-name">PM10</div>
+                        <div class="aqi-status" id="pm10-aqi-status">--</div>
                     </div>
                 </div>
             </div>

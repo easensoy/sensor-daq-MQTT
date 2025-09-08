@@ -31,10 +31,10 @@
     @apply relative inline-block;
 }
 
-    .aqi-gauge svg {
-        @apply mx-auto;
-        transform: rotate(-90deg);
-    }
+.aqi-gauge svg {
+    @apply mx-auto;
+    transform: rotate(-90deg);
+}
 
 .progress-circle {
     transition: stroke-dashoffset 0.5s ease-in-out, stroke 0.3s ease-in-out;
@@ -71,13 +71,13 @@
     transition: all 0.3s ease-in-out;
 }
 
-    #connectionStatus.connected {
-        @apply bg-green-100 text-green-800;
-    }
+#connectionStatus.connected {
+    @apply bg-green-100 text-green-800;
+}
 
-    #connectionStatus.disconnected {
-        @apply bg-red-100 text-red-800;
-    }
+#connectionStatus.disconnected {
+    @apply bg-red-100 text-red-800;
+}
 
 /* Loading animation */
 .loading {
@@ -85,25 +85,20 @@
     overflow: hidden;
 }
 
-    .loading::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-        animation: loading 1.5s infinite;
-    }
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+    animation: loading 1.5s infinite;
+}
 
 @keyframes loading {
-    0% {
-        left: -100%;
-    }
-
-    100% {
-        left: 100%;
-    }
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
 /* Chart responsive canvas */
@@ -114,57 +109,35 @@
 }
 
 /* AQI Quality color classes */
-.aqi-good {
-    @apply text-green-600;
-}
-
-.aqi-moderate {
-    @apply text-yellow-600;
-}
-
-.aqi-unhealthy-sensitive {
-    @apply text-orange-500;
-}
-
-.aqi-unhealthy {
-    @apply text-red-500;
-}
-
-.aqi-very-unhealthy {
-    @apply text-purple-600;
-}
-
-.aqi-hazardous {
-    @apply text-red-800;
-}
+.aqi-good { @apply text-green-600; }
+.aqi-moderate { @apply text-yellow-600; }
+.aqi-unhealthy-sensitive { @apply text-orange-500; }
+.aqi-unhealthy { @apply text-red-500; }
+.aqi-very-unhealthy { @apply text-purple-600; }
+.aqi-hazardous { @apply text-red-800; }
 
 /* Status dot colors */
-.status-dot.good {
+.status-dot.good { 
     background-color: #16a34a;
     box-shadow: 0 0 12px rgba(22, 163, 74, 0.4);
 }
-
-.status-dot.moderate {
+.status-dot.moderate { 
     background-color: #ca8a04;
     box-shadow: 0 0 12px rgba(202, 138, 4, 0.4);
 }
-
-.status-dot.unhealthy-sensitive {
+.status-dot.unhealthy-sensitive { 
     background-color: #ea580c;
     box-shadow: 0 0 12px rgba(234, 88, 12, 0.4);
 }
-
-.status-dot.unhealthy {
+.status-dot.unhealthy { 
     background-color: #dc2626;
     box-shadow: 0 0 12px rgba(220, 38, 38, 0.4);
 }
-
-.status-dot.very-unhealthy {
+.status-dot.very-unhealthy { 
     background-color: #9333ea;
     box-shadow: 0 0 12px rgba(147, 51, 234, 0.4);
 }
-
-.status-dot.hazardous {
+.status-dot.hazardous { 
     background-color: #991b1b;
     box-shadow: 0 0 12px rgba(153, 27, 27, 0.4);
 }
@@ -174,20 +147,20 @@
     .container {
         @apply px-2;
     }
-
+    
     .sensor-card {
         @apply p-3;
         min-height: 90px;
     }
-
+    
     .chart-container {
         @apply p-3;
     }
-
+    
     .chart-wrapper {
         height: 250px;
     }
-
+    
     .gauge-wrapper {
         @apply scale-90;
     }
@@ -197,11 +170,11 @@
     .chart-wrapper {
         height: 200px;
     }
-
+    
     .gauge-wrapper {
         @apply scale-75;
     }
-
+    
     .gauge-container {
         @apply mb-4;
     }

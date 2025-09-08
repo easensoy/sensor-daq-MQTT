@@ -10,6 +10,9 @@ builder.Services.AddSwaggerGen();
 // Add HttpClient for RSS fetching
 builder.Services.AddHttpClient<SensorDataService>();
 
+// Register background service - ADD THIS LINE:
+builder.Services.AddHostedService<SensorDataService>();
+
 // Register background service
 var app = builder.Build();
 

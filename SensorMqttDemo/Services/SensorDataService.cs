@@ -43,17 +43,27 @@ namespace SensorMqttDemo.Services
 
         private async Task FetchAndProcessData()
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             foreach (var url in _rssUrls)
             {
                 try
                 {
+                    var fetchStart = System.Diagnostics.Stopwatch.StartNew();
                     Console.WriteLine($"[DEBUG] Fetching from: {url}");
+
                     var response = await _httpClient.GetStringAsync(url);
-                    Console.WriteLine($"[DEBUG] Response length: {response.Length} chars");
+                    fetchStart.Stop();
+
+                    var parseStart = System.Diagnostics.Stopwatch.StartNew();
+                    Console.WriteLine($"[DEBUG] API Response time: {fetchStart.ElapsedMilliseconds}ms, Response length: {response.Length} chars");
 
                     var readings = ParseRssData(response);
-                    Console.WriteLine($"[DEBUG] Parsed {readings.Count} readings");
+                    parseStart.Stop();
 
+                    Console.WriteLine($"[DEBUG] Parse time: {parseStart.ElapsedMilliseconds}ms, Parsed {readings.Count} readings");
+
+                    var signalrStart = System.Diagnostics.Stopwatch.StartNew();
                     foreach (var reading in readings)
                     {
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {reading.SensorType} = {reading.AQI} AQI ({reading.Quality})");
@@ -65,8 +75,11 @@ namespace SensorMqttDemo.Services
                             reading.Quality,
                             reading.Location,
                             reading.Agency);
-                        Console.WriteLine($"[DEBUG] Sent SignalR: {reading.SensorType} = {reading.AQI}");
                     }
+                    signalrStart.Stop();
+
+                    stopwatch.Stop();
+                    Console.WriteLine($"[PERFORMANCE] Total cycle time: {stopwatch.ElapsedMilliseconds}ms (API: {fetchStart.ElapsedMilliseconds}ms, Parse: {parseStart.ElapsedMilliseconds}ms, SignalR: {signalrStart.ElapsedMilliseconds}ms)");
                 }
                 catch (Exception ex)
                 {

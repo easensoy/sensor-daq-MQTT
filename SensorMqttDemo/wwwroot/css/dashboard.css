@@ -2,6 +2,7 @@
 
 .sensor-card {
     @apply rounded-lg shadow-sm border border-gray-200 p-4 transition-all duration-300 hover:shadow-md hover:border-gray-300;
+    min-height: 100px;
 }
 
 .chart-container {
@@ -17,8 +18,36 @@
     height: 300px;
 }
 
+/* Gauge Chart Styles */
+.gauge-container {
+    @apply flex justify-center items-center;
+}
+
+.gauge-wrapper {
+    @apply relative flex flex-col items-center;
+}
+
+.gauge-label {
+    @apply absolute inset-0 flex flex-col items-center justify-center text-center;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.gauge-title {
+    @apply text-xs font-medium text-gray-600 mb-1;
+}
+
+.gauge-value {
+    @apply text-lg font-bold text-gray-800;
+}
+
+#pm25Gauge, #ozoneGauge, #pm10Gauge {
+    width: 120px !important;
+    height: 120px !important;
+}
+
 .status-dot {
-    @apply w-3 h-3 rounded-full transition-colors duration-300;
+    @apply w-4 h-4 rounded-full transition-colors duration-300;
     background-color: #d1d5db;
     box-shadow: 0 0 8px rgba(209, 213, 219, 0.5);
 }
@@ -64,7 +93,7 @@
 }
 
 /* Chart responsive canvas */
-#lineChart, #barChart {
+#lineChart {
     width: 100% !important;
     height: 100% !important;
     max-height: 300px;
@@ -134,6 +163,7 @@
 
     .sensor-card {
         @apply p-3;
+        min-height: 90px;
     }
 
     .chart-container {
@@ -143,10 +173,22 @@
     .chart-wrapper {
         height: 250px;
     }
+
+    .gauge-wrapper {
+        @apply scale-90;
+    }
 }
 
 @media (max-width: 640px) {
     .chart-wrapper {
         height: 200px;
+    }
+
+    .gauge-wrapper {
+        @apply scale-75;
+    }
+
+    .gauge-container {
+        @apply mb-4;
     }
 }

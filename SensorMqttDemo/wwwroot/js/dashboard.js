@@ -4,9 +4,6 @@ class AirNowDashboard {
     constructor() {
         this.connection = null;
         this.lineChart = null;
-        this.pm25Gauge = null;
-        this.ozoneGauge = null;
-        this.pm10Gauge = null;
         this.sensorData = {
             'PM2.5': { value: 0, quality: '', data: [] },
             'Ozone': { value: 0, quality: '', data: [] },
@@ -30,24 +27,25 @@ class AirNowDashboard {
     setupConnectionHandlers() {
         // Data received handler
         this.connection.on("SensorDataUpdate", (sensorType, aqi, quality, location, agency) => {
-            console.log(`?? Data: ${sensorType} = ${aqi} AQI (${quality})`);
+            const receiveTime = performance.now();
+            console.log(`[DATA] ${sensorType} = ${aqi} AQI (${quality}) - Received at: ${receiveTime.toFixed(2)}ms`);
             this.updateSensorData(sensorType, aqi, quality, location, agency);
         });
 
         // Connection state handlers
         this.connection.onclose(() => {
             this.updateConnectionStatus(false);
-            console.log('?? SignalR Disconnected');
+            console.log('[CONNECTION] SignalR Disconnected');
         });
 
         this.connection.onreconnecting(() => {
             this.updateConnectionStatus(false, 'Reconnecting...');
-            console.log('?? SignalR Reconnecting...');
+            console.log('[CONNECTION] SignalR Reconnecting...');
         });
 
         this.connection.onreconnected(() => {
             this.updateConnectionStatus(true);
-            console.log('?? SignalR Reconnected');
+            console.log('[CONNECTION] SignalR Reconnected');
         });
     }
 
@@ -55,17 +53,16 @@ class AirNowDashboard {
         try {
             await this.connection.start();
             this.updateConnectionStatus(true);
-            console.log('?? SignalR Connected');
+            console.log('[CONNECTION] SignalR Connected');
         } catch (err) {
             this.updateConnectionStatus(false);
-            console.error('?? SignalR Connection Error:', err.toString());
+            console.error('[ERROR] SignalR Connection Error:', err.toString());
             setTimeout(() => this.startConnection(), 5000);
         }
     }
 
     initializeCharts() {
         this.createLineChart();
-        this.createBarChart();
     }
 
     createLineChart() {
@@ -236,16 +233,67 @@ class AirNowDashboard {
         });
         this.lineChart.update('none');
 
-        // Update bar chart with dynamic colors
-        const currentData = [
-            this.sensorData['PM2.5'].value,
-            this.sensorData['Ozone'].value,
-            this.sensorData['PM10'].value
-        ];
+        // Update SVG gauges
+        this.updateSVGGauge('pm25', this.sensorData['PM2.5'].value, this.sensorData['PM2.5'].quality);
+        this.updateSVGGauge('ozone', this.sensorData['Ozone'].value, this.sensorData['Ozone'].quality);
+        this.updateSVGGauge('pm10', this.sensorData['PM10'].value, this.sensorData['PM10'].quality);
+    }
 
-        this.barChart.data.datasets[0].data = currentData;
-        this.barChart.data.datasets[0].backgroundColor = currentData.map(aqi => this.getAQIColor(aqi));
-        this.barChart.update('active');
+    updateSVGGauge(sensorPrefix, value, quality) {
+        console.log(`[GAUGE UPDATE] ${sensorPrefix}: ${value} AQI (${quality})`);
+
+        // Update gauge value
+        const valueElement = document.getElementById(`${sensorPrefix}-aqi-value`);
+        const statusElement = document.getElementById(`${sensorPrefix}-aqi-status`);
+        const progressElement = document.getElementById(`${sensorPrefix}-progress`);
+
+        console.log(`[DEBUG] Looking for elements:`, {
+            valueElement: !!valueElement,
+            statusElement: !!statusElement,
+            progressElement: !!progressElement
+        });
+
+        if (valueElement) {
+            valueElement.textContent = value;
+            valueElement.style.display = 'block';
+            valueElement.style.position = 'absolute';
+            valueElement.style.top = '50%';
+            valueElement.style.left = '50%';
+            valueElement.style.transform = 'translate(-50%, -50%)';
+            valueElement.style.zIndex = '20';
+            valueElement.style.fontSize = '2.5rem';
+            valueElement.style.fontWeight = '900';
+            valueElement.style.color = '#1f2937';
+            console.log(`[GAUGE] Updated ${sensorPrefix} value to ${value} with inline styles`);
+        } else {
+            console.error(`[GAUGE] Element ${sensorPrefix}-aqi-value not found`);
+        }
+
+        if (statusElement) {
+            statusElement.textContent = quality;
+            statusElement.className = `text-xs font-medium ${this.getAQIClass(value)}`;
+            console.log(`[GAUGE] Updated ${sensorPrefix} status to ${quality}`);
+        } else {
+            console.error(`[GAUGE] Element ${sensorPrefix}-aqi-status not found`);
+        }
+
+        // Update SVG progress circle
+        if (progressElement) {
+            // Calculate progress (AQI scale 0-300 for better visual display)
+            const maxDisplay = 300;
+            const percentage = Math.min((value / maxDisplay) * 100, 100);
+            const circumference = 377; // 2 * PI * 60 (radius)
+            const offset = circumference - (percentage / 100) * circumference;
+
+            // Set stroke color based on AQI level
+            const color = this.getAQIColor(value);
+            progressElement.style.stroke = color;
+            progressElement.style.strokeDashoffset = offset;
+
+            console.log(`[GAUGE] Updated ${sensorPrefix} progress: ${percentage.toFixed(1)}%, color: ${color}`);
+        } else {
+            console.error(`[GAUGE] Element ${sensorPrefix}-progress not found`);
+        }
     }
 
     updateConnectionStatus(isConnected, customText = null) {
@@ -299,7 +347,7 @@ class AirNowDashboard {
 // Initialize dashboard when DOM is loaded
 let dashboard;
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('?? Initializing Industrial AirNow Dashboard');
+    console.log('[INIT] Initializing Industrial AirNow Dashboard');
     dashboard = new AirNowDashboard();
 
     // Add loading state to cards initially

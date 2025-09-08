@@ -47,8 +47,12 @@ namespace SensorMqttDemo.Services
             {
                 try
                 {
+                    Console.WriteLine($"[DEBUG] Fetching from: {url}");
                     var response = await _httpClient.GetStringAsync(url);
+                    Console.WriteLine($"[DEBUG] Response length: {response.Length} chars");
+
                     var readings = ParseRssData(response);
+                    Console.WriteLine($"[DEBUG] Parsed {readings.Count} readings");
 
                     foreach (var reading in readings)
                     {
@@ -61,10 +65,12 @@ namespace SensorMqttDemo.Services
                             reading.Quality,
                             reading.Location,
                             reading.Agency);
+                        Console.WriteLine($"[DEBUG] Sent SignalR: {reading.SensorType} = {reading.AQI}");
                     }
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine($"[ERROR] {ex.Message}");
                     _logger.LogError(ex, $"Error processing URL: {url}");
                 }
             }
@@ -82,39 +88,74 @@ namespace SensorMqttDemo.Services
                 foreach (var item in items)
                 {
                     var description = item.Element("description")?.Value ?? "";
-                    var title = item.Element("title")?.Value ?? "";
                     var pubDate = DateTime.Parse(item.Element("pubDate")?.Value ?? DateTime.Now.ToString());
 
-                    // Extract location from description
-                    var locationMatch = Regex.Match(description, @"([^,]+,\s*[A-Z]{2})");
-                    var location = locationMatch.Success ? locationMatch.Groups[1].Value : "Unknown";
+                    // Extract location from title
+                    var title = item.Element("title")?.Value ?? "";
+                    var locationMatch = Regex.Match(title, @"([^,]+,\s*[A-Z]{2})");
+                    var location = locationMatch.Success ? locationMatch.Groups[1].Value : "Antelope Vly, CA";
 
-                    // Extract AQI from title (format: "PM2.5 AQI of 25 for Antelope Vly, CA")
-                    var aqiMatch = Regex.Match(title, @"(\w+(?:\.\d+)?)\s+AQI\s+of\s+(\d+)");
-                    if (aqiMatch.Success)
+                    Console.WriteLine($"[DEBUG] Processing description: {description.Substring(0, Math.Min(200, description.Length))}...");
+
+                    // Parse AQI data from description HTML content
+                    // Format: "Quality - AQI_VALUE AQI - Pollutant_Type"
+                    var aqiMatches = Regex.Matches(description, @"(\w+)\s*-\s*(\d+)\s*AQI\s*-\s*([^<\r\n]+)");
+
+                    Console.WriteLine($"[DEBUG] Found {aqiMatches.Count} AQI matches");
+
+                    foreach (Match match in aqiMatches)
                     {
-                        var sensorType = aqiMatch.Groups[1].Value;
-                        var aqi = int.Parse(aqiMatch.Groups[2].Value);
-                        var quality = GetAQIQuality(aqi);
+                        var quality = match.Groups[1].Value.Trim();
+                        var aqi = int.Parse(match.Groups[2].Value);
+                        var pollutantType = match.Groups[3].Value.Trim();
 
-                        readings.Add(new SensorReading
+                        Console.WriteLine($"[DEBUG] Match: {quality} - {aqi} AQI - {pollutantType}");
+
+                        // Map pollutant types to sensor types
+                        var sensorType = MapPollutantToSensorType(pollutantType);
+
+                        if (!string.IsNullOrEmpty(sensorType))
                         {
-                            Location = location,
-                            SensorType = sensorType,
-                            AQI = aqi,
-                            Quality = quality,
-                            Timestamp = pubDate,
-                            Agency = "Antelope Valley AQMD"
-                        });
+                            readings.Add(new SensorReading
+                            {
+                                Location = location,
+                                SensorType = sensorType,
+                                AQI = aqi,
+                                Quality = quality,
+                                Timestamp = pubDate,
+                                Agency = "Antelope Valley AQMD"
+                            });
+                            Console.WriteLine($"[DEBUG] Added reading: {sensorType} = {aqi} AQI ({quality})");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[DEBUG] Unknown pollutant type: {pollutantType}");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[ERROR] Parsing failed: {ex.Message}");
                 _logger.LogError(ex, "Error parsing RSS data");
             }
 
+            Console.WriteLine($"[DEBUG] Total readings parsed: {readings.Count}");
             return readings;
+        }
+
+        private string MapPollutantToSensorType(string pollutantType)
+        {
+            pollutantType = pollutantType.ToLower();
+
+            if (pollutantType.Contains("ozone"))
+                return "Ozone";
+            if (pollutantType.Contains("2.5 microns") || pollutantType.Contains("pm2.5"))
+                return "PM2.5";
+            if (pollutantType.Contains("10 microns") || pollutantType.Contains("pm10"))
+                return "PM10";
+
+            return ""; // Unknown type
         }
 
         private string GetAQIQuality(int aqi)

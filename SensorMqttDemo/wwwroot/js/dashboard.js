@@ -4,7 +4,9 @@ class AirNowDashboard {
     constructor() {
         this.connection = null;
         this.lineChart = null;
-        this.barChart = null;
+        this.pm25Gauge = null;
+        this.ozoneGauge = null;
+        this.pm10Gauge = null;
         this.sensorData = {
             'PM2.5': { value: 0, quality: '', data: [] },
             'Ozone': { value: 0, quality: '', data: [] },

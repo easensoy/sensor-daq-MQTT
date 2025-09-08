@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirNow Real-time Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-6">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-center mb-2">AirNow Real-time Dashboard</h1>
+            <div class="text-center">
+                <span id="connectionStatus" class="px-3 py-1 rounded-full text-sm bg-red-600">Disconnected</span>
+                <span id="lastUpdate" class="text-gray-400 ml-4">--</span>
+            </div>
+        </div>
+
+        <!-- Current Values Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="sensor-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">PM2.5</p>
+                        <p id="pm25-value" class="text-3xl font-bold">--</p>
+                        <p id="pm25-quality" class="text-sm mt-1">--</p>
+                    </div>
+                    <div id="pm25-dot" class="status-dot"></div>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Ozone</p>
+                        <p id="ozone-value" class="text-3xl font-bold">--</p>
+                        <p id="ozone-quality" class="text-sm mt-1">--</p>
+                    </div>
+                    <div id="ozone-dot" class="status-dot"></div>
+                </div>
+            </div>
+
+            <div class="sensor-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">PM10</p>
+                        <p id="pm10-value" class="text-3xl font-bold">--</p>
+                        <p id="pm10-quality" class="text-sm mt-1">--</p>
+                    </div>
+                    <div id="pm10-dot" class="status-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Real-time Line Chart -->
+            <div class="chart-container">
+                <h3 class="text-xl font-semibold mb-4">Real-time AQI Trends</h3>
+                <canvas id="lineChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Current AQI Bar Chart -->
+            <div class="chart-container">
+                <h3 class="text-xl font-semibold mb-4">Current AQI Levels</h3>
+                <canvas id="barChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Location Info -->
+        <div class="mt-8 info-card">
+            <h3 class="text-xl font-semibold mb-4">Monitoring Station</h3>
+            <p class="text-gray-300">
+                <span class="font-medium">Location:</span> <span id="location">Antelope Valley, CA</span>
+            </p>
+            <p class="text-gray-300 mt-2">
+                <span class="font-medium">Agency:</span> <span id="agency">Antelope Valley AQMD</span>
+            </p>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

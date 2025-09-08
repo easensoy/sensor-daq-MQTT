@@ -1,110 +1,49 @@
-// Industrial AirNow Dashboard
-
-class AirNowDashboard {
+class ModernAirNowDashboard {
     constructor() {
-        this.connection = null;
-        this.lineChart = null;
-        this.sensorData = {
-            'PM2.5': { value: 0, quality: '', data: [] },
-            'Ozone': { value: 0, quality: '', data: [] },
-            'PM10': { value: 0, quality: '', data: [] }
-        };
-        this.maxDataPoints = 20;
-        this.initializeConnection();
         this.initializeCharts();
     }
 
-    initializeConnection() {
-        this.connection = new signalR.HubConnectionBuilder()
-            .withUrl("/sensorHub")
-            .withAutomaticReconnect([0, 2000, 10000, 30000])
-            .build();
-
-        this.setupConnectionHandlers();
-        this.startConnection();
-    }
-
-    setupConnectionHandlers() {
-        // Data received handler
-        this.connection.on("SensorDataUpdate", (sensorType, aqi, quality, location, agency) => {
-            const receiveTime = performance.now();
-            console.log(`[DATA] ${sensorType} = ${aqi} AQI (${quality}) - Received at: ${receiveTime.toFixed(2)}ms`);
-            this.updateSensorData(sensorType, aqi, quality, location, agency);
-        });
-
-        // Connection state handlers
-        this.connection.onclose(() => {
-            this.updateConnectionStatus(false);
-            console.log('[CONNECTION] SignalR Disconnected');
-        });
-
-        this.connection.onreconnecting(() => {
-            this.updateConnectionStatus(false, 'Reconnecting...');
-            console.log('[CONNECTION] SignalR Reconnecting...');
-        });
-
-        this.connection.onreconnected(() => {
-            this.updateConnectionStatus(true);
-            console.log('[CONNECTION] SignalR Reconnected');
-        });
-    }
-
-    async startConnection() {
-        try {
-            await this.connection.start();
-            this.updateConnectionStatus(true);
-            console.log('[CONNECTION] SignalR Connected');
-        } catch (err) {
-            this.updateConnectionStatus(false);
-            console.error('[ERROR] SignalR Connection Error:', err.toString());
-            setTimeout(() => this.startConnection(), 5000);
-        }
-    }
-
     initializeCharts() {
-        this.createLineChart();
+        this.initializeLineChart();
+        this.initializeDoughnutCharts();
     }
 
-    createLineChart() {
+    initializeLineChart() {
         const ctx = document.getElementById('lineChart').getContext('2d');
-
         this.lineChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [],
+                labels: Array.from({ length: 20 }, (_, i) => `11:18:${35 + i}`),
                 datasets: [
                     {
                         label: 'PM2.5',
-                        data: [],
-                        borderColor: '#dc2626',
-                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        pointRadius: 4,
+                        data: Array.from({ length: 20 }, () => 17 + Math.random() * 2 - 1),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
                         pointHoverRadius: 6,
-                        fill: true
                     },
                     {
                         label: 'Ozone',
-                        data: [],
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        pointRadius: 4,
+                        data: Array.from({ length: 20 }, () => 37 + Math.random() * 2 - 1),
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
                         pointHoverRadius: 6,
-                        fill: true
                     },
                     {
                         label: 'PM10',
-                        data: [],
-                        borderColor: '#16a34a',
-                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        pointRadius: 4,
+                        data: Array.from({ length: 20 }, () => 3 + Math.random() * 1 - 0.5),
+                        borderColor: '#10b981',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
                         pointHoverRadius: 6,
-                        fill: true
                     }
                 ]
             },
@@ -116,9 +55,10 @@ class AirNowDashboard {
                         position: 'top',
                         labels: {
                             color: '#374151',
-                            font: { size: 12, weight: 'bold' },
+                            font: { size: 12, weight: '600' },
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'circle',
+                            padding: 20
                         }
                     },
                     tooltip: {
@@ -128,237 +68,111 @@ class AirNowDashboard {
                         titleColor: '#ffffff',
                         bodyColor: '#ffffff',
                         borderColor: '#e5e7eb',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        cornerRadius: 8
                     }
                 },
                 scales: {
                     x: {
                         ticks: {
                             color: '#6b7280',
-                            maxTicksLimit: 10
+                            maxTicksLimit: 8,
+                            font: { size: 11 }
                         },
                         grid: {
-                            color: '#f3f4f6',
+                            color: 'rgba(0, 0, 0, 0.05)',
                             drawBorder: false
                         }
                     },
                     y: {
                         ticks: {
                             color: '#6b7280',
-                            callback: function (value) {
-                                return value + ' AQI';
-                            }
+                            font: { size: 11 }
                         },
                         grid: {
-                            color: '#f3f4f6',
+                            color: 'rgba(0, 0, 0, 0.05)',
                             drawBorder: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Air Quality Index',
-                            color: '#374151',
-                            font: { size: 12, weight: 'bold' }
-                        },
-                        beginAtZero: true
+                        }
                     }
                 },
                 interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
     }
 
-    updateSensorData(sensorType, aqi, quality, location, agency) {
-        // Update stored data
-        this.sensorData[sensorType] = { value: aqi, quality: quality };
-
-        // Update UI cards
-        this.updateSensorCard(sensorType, aqi, quality);
-
-        // Update charts
-        this.updateCharts();
-
-        // Update location info
-        document.getElementById('location').textContent = location;
-        document.getElementById('agency').textContent = agency;
-
-        // Update timestamp
-        document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
-    }
-
-    updateSensorCard(sensorType, aqi, quality) {
-        const prefix = sensorType.toLowerCase().replace('.', '');
-
-        // Update values
-        document.getElementById(`${prefix}-value`).textContent = aqi;
-        const qualityElement = document.getElementById(`${prefix}-quality`);
-        qualityElement.textContent = quality;
-
-        // Update status dot
-        const dot = document.getElementById(`${prefix}-dot`);
-        const dotClass = this.getAQIDotClass(aqi);
-        dot.className = `status-dot ${dotClass}`;
-
-        // Update quality color
-        const qualityClass = this.getAQIClass(aqi);
-        qualityElement.className = `text-xs mt-1 font-medium ${qualityClass}`;
-    }
-
-    updateCharts() {
-        const now = new Date().toLocaleTimeString('en-US', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-
-        // Update line chart
-        this.lineChart.data.labels.push(now);
-        if (this.lineChart.data.labels.length > this.maxDataPoints) {
-            this.lineChart.data.labels.shift();
-        }
-
-        this.lineChart.data.datasets.forEach((dataset, index) => {
-            const sensorTypes = ['PM2.5', 'Ozone', 'PM10'];
-            const sensorType = sensorTypes[index];
-            const value = this.sensorData[sensorType].value;
-
-            dataset.data.push(value);
-            if (dataset.data.length > this.maxDataPoints) {
-                dataset.data.shift();
+    initializeDoughnutCharts() {
+        // PM2.5 Doughnut
+        const pm25Ctx = document.getElementById('pm25Chart').getContext('2d');
+        new Chart(pm25Ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [17, 83],
+                    backgroundColor: ['#8b5cf6', 'rgba(0, 0, 0, 0.05)'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
             }
         });
-        this.lineChart.update('none');
 
-        // Update SVG gauges
-        this.updateSVGGauge('pm25', this.sensorData['PM2.5'].value, this.sensorData['PM2.5'].quality);
-        this.updateSVGGauge('ozone', this.sensorData['Ozone'].value, this.sensorData['Ozone'].quality);
-        this.updateSVGGauge('pm10', this.sensorData['PM10'].value, this.sensorData['PM10'].quality);
-    }
-
-    updateSVGGauge(sensorPrefix, value, quality) {
-        console.log(`[GAUGE UPDATE] ${sensorPrefix}: ${value} AQI (${quality})`);
-
-        // Update gauge value
-        const valueElement = document.getElementById(`${sensorPrefix}-aqi-value`);
-        const statusElement = document.getElementById(`${sensorPrefix}-aqi-status`);
-        const progressElement = document.getElementById(`${sensorPrefix}-progress`);
-
-        console.log(`[DEBUG] Looking for elements:`, {
-            valueElement: !!valueElement,
-            statusElement: !!statusElement,
-            progressElement: !!progressElement
+        // Ozone Doughnut
+        const ozoneCtx = document.getElementById('ozoneChart').getContext('2d');
+        new Chart(ozoneCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [37, 63],
+                    backgroundColor: ['#06b6d4', 'rgba(0, 0, 0, 0.05)'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
         });
 
-        if (valueElement) {
-            valueElement.textContent = value;
-            valueElement.style.display = 'block';
-            valueElement.style.position = 'absolute';
-            valueElement.style.top = '50%';
-            valueElement.style.left = '50%';
-            valueElement.style.transform = 'translate(-50%, -50%)';
-            valueElement.style.zIndex = '20';
-            valueElement.style.fontSize = '2.5rem';
-            valueElement.style.fontWeight = '900';
-            valueElement.style.color = '#1f2937';
-            console.log(`[GAUGE] Updated ${sensorPrefix} value to ${value} with inline styles`);
-        } else {
-            console.error(`[GAUGE] Element ${sensorPrefix}-aqi-value not found`);
-        }
-
-        if (statusElement) {
-            statusElement.textContent = quality;
-            statusElement.className = `text-xs font-medium ${this.getAQIClass(value)}`;
-            console.log(`[GAUGE] Updated ${sensorPrefix} status to ${quality}`);
-        } else {
-            console.error(`[GAUGE] Element ${sensorPrefix}-aqi-status not found`);
-        }
-
-        // Update SVG progress circle
-        if (progressElement) {
-            // Calculate progress (AQI scale 0-300 for better visual display)
-            const maxDisplay = 300;
-            const percentage = Math.min((value / maxDisplay) * 100, 100);
-            const circumference = 377; // 2 * PI * 60 (radius)
-            const offset = circumference - (percentage / 100) * circumference;
-
-            // Set stroke color based on AQI level
-            const color = this.getAQIColor(value);
-            progressElement.style.stroke = color;
-            progressElement.style.strokeDashoffset = offset;
-
-            console.log(`[GAUGE] Updated ${sensorPrefix} progress: ${percentage.toFixed(1)}%, color: ${color}`);
-        } else {
-            console.error(`[GAUGE] Element ${sensorPrefix}-progress not found`);
-        }
-    }
-
-    updateConnectionStatus(isConnected, customText = null) {
-        const statusElement = document.getElementById('connectionStatus');
-        if (isConnected) {
-            statusElement.textContent = 'Connected';
-            statusElement.className = 'px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 connected';
-        } else {
-            statusElement.textContent = customText || 'Disconnected';
-            statusElement.className = 'px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 disconnected';
-        }
-    }
-
-    getAQIColor(aqi) {
-        if (aqi <= 50) return '#16a34a';      // Good - Green
-        if (aqi <= 100) return '#ca8a04';     // Moderate - Yellow
-        if (aqi <= 150) return '#ea580c';     // Unhealthy for Sensitive - Orange
-        if (aqi <= 200) return '#dc2626';     // Unhealthy - Red
-        if (aqi <= 300) return '#9333ea';     // Very Unhealthy - Purple
-        return '#991b1b';                     // Hazardous - Maroon
-    }
-
-    getAQIClass(aqi) {
-        if (aqi <= 50) return 'aqi-good';
-        if (aqi <= 100) return 'aqi-moderate';
-        if (aqi <= 150) return 'aqi-unhealthy-sensitive';
-        if (aqi <= 200) return 'aqi-unhealthy';
-        if (aqi <= 300) return 'aqi-very-unhealthy';
-        return 'aqi-hazardous';
-    }
-
-    getAQIDotClass(aqi) {
-        if (aqi <= 50) return 'good';
-        if (aqi <= 100) return 'moderate';
-        if (aqi <= 150) return 'unhealthy-sensitive';
-        if (aqi <= 200) return 'unhealthy';
-        if (aqi <= 300) return 'very-unhealthy';
-        return 'hazardous';
-    }
-
-    getAQIQuality(aqi) {
-        if (aqi <= 50) return 'Good';
-        if (aqi <= 100) return 'Moderate';
-        if (aqi <= 150) return 'Unhealthy for Sensitive Groups';
-        if (aqi <= 200) return 'Unhealthy';
-        if (aqi <= 300) return 'Very Unhealthy';
-        return 'Hazardous';
+        // PM10 Doughnut
+        const pm10Ctx = document.getElementById('pm10Chart').getContext('2d');
+        new Chart(pm10Ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [3, 97],
+                    backgroundColor: ['#10b981', 'rgba(0, 0, 0, 0.05)'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
     }
 }
 
 // Initialize dashboard when DOM is loaded
-let dashboard;
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('[INIT] Initializing Industrial AirNow Dashboard');
-    dashboard = new AirNowDashboard();
-
-    // Add loading state to cards initially
-    document.querySelectorAll('.sensor-card').forEach(card => {
-        card.classList.add('loading');
-    });
-
-    // Remove loading state after connection
-    setTimeout(() => {
-        document.querySelectorAll('.sensor-card').forEach(card => {
-            card.classList.remove('loading');
-        });
-    }, 2000);
+    new ModernAirNowDashboard();
 });
